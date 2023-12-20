@@ -7,6 +7,11 @@ export const supabaseAuthProvider = (
 ): SupabaseAuthProvider => {
     return {
         async login(params) {
+            const get_my_claims = async () => {
+                const { data, error } = await client.rpc("get_my_claims", {});
+                return { data, error  };
+              };
+
             const emailPasswordParams = params as LoginWithEmailPasswordParams;
             if (emailPasswordParams.email && emailPasswordParams.password) {
                 const { error } = await client.auth.signInWithPassword(
@@ -17,6 +22,11 @@ export const supabaseAuthProvider = (
                     throw error;
                 }
 
+                const claims = await get_my_claims();
+                if (!claims.data.claims_admin)  {
+                    throw new Error('You are not an admin');
+                }
+                
                 return;
             }
 
